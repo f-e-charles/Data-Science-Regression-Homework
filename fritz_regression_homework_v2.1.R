@@ -10,6 +10,7 @@ stopifnot(mae(5,1)==4)
 
 alltrain <-read.csv("train_50k.csv")
 
+
 alltrain$Dorking <- grepl('Dorking', alltrain$LocationNormalized)
 alltrain$Glasgow <- grepl('Glasgow', alltrain$LocationNormalized)
 alltrain$Hampshire <- grepl('Hampshire', alltrain$LocationNormalized)  
@@ -18,7 +19,7 @@ alltrain$Surrey <- grepl('Surrey', alltrain$LocationNormalized)
 set.seed(55)
 alltrain$fold <- sample(1:100, nrow(alltrain), replace=TRUE)
 
-# split into training and test group based on  
+# split into training and test group based on job category 
 training <- subset(alltrain, Category != 'Engineering Jobs')
 test <- subset(alltrain, Category == 'Engineering Jobs')
 
@@ -48,13 +49,24 @@ summary(model2)
 mae(fitted(model2), alltrain$SalaryNormalized)
 #pretty much the same
 
-finalmodel <- glm(SalaryNormalized ~ Dorking + Glasgow + Hampshire + Surrey + Permanent + Contract , data=test2)
+
+realtest <- read.csv("test.csv")
 
 
-prediction<-predict(finalmodel,test2)
-submission<-data.frame(test2$Id,Salary=prediction)
+realtest$Dorking <- grepl('Dorking', realtest$LocationNormalized)
+realtest$Glasgow <- grepl('Glasgow', realtest$LocationNormalized)
+realtest$Hampshire <- grepl('Hampshire', realtest$LocationNormalized)  
+realtest$Surrey <- grepl('Surrey', realtest$LocationNormalized)
+realtest$Permanent <- grepl('permanent', realtest$ContractTime)  
+realtest$Contract <- grepl('contract', realtest$ContractTime)
 
-write.csv(submission, "my_submission.csv", row.names=FALSE)
+finalmodel <- glm(SalaryNormalized ~ Dorking + Glasgow + Hampshire + Surrey + Permanent + Contract , data=alltrain)
+
+
+prediction<-predict(finalmodel,realtest)
+submission<-data.frame(realtest$Id,Salary=prediction)
+
+write.csv(submission, "my_submission3.csv", row.names=FALSE)
 
 
 
